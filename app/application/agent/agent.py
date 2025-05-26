@@ -64,8 +64,8 @@ class Agent:
             "generated_code_3":"user_generator3.txt"
         }
 
-        prompt_input = Path(f'{self.prompt_path}{promt_select[slot]}').read_text()
-        prompt_system = Path(f'{self.prompt_path}sys_generator.txt').read_text()
+        prompt_input = Path(f'{self.prompt_path}/{promt_select[slot]}').read_text()
+        prompt_system = Path(f'{self.prompt_path}/sys_generator.txt').read_text()
 
         prompt_input = prompt_input.format(
             descripcion = state.descripcion
@@ -73,15 +73,15 @@ class Agent:
         new_code = self.llm.chat(prompt=prompt_input,sys_promt=prompt_system,temperature=0.2)
 
         setattr(state, slot, new_code)
-        state.history.append({f"{slot.upper()}_NODE": snapshot_state(state)})
+        state.history.append({f"NODE_{slot.upper()}_it{state.n_iterations}": snapshot_state(state)})
         return state
     
     def aggregator(self, state: AgentState) -> AgentState:
         """Toma los 3 casos generados y genera un último caso"""
         print('-'*30,'>')
         print(f"SATE AGREGATOR IT {state.n_iterations}:\n{state}")
-        prompt_aggregator = Path(f'{self.prompt_path}user_aggregator.txt').read_text()
-        prompt_system = Path(f'{self.prompt_path}sys_generator.txt').read_text()
+        prompt_aggregator = Path(f'{self.prompt_path}/user_aggregator.txt').read_text()
+        prompt_system = Path(f'{self.prompt_path}/sys_generator.txt').read_text()
         if state.feedback.strip().upper() not in ["OK",""]:
             feedback_prompt = f"### Feedback\n{state.feedback.strip()}\n\n* Este es el código sobre el que se ha realizado el feedback::\n{state.generated_code}"
         else:
@@ -97,13 +97,13 @@ class Agent:
         state.generated_code = new_code
         print(f"SATE AGREGATOR IT {state.n_iterations}:\n{state}")
         print('<','-'*30)
-        state.history.append({f"AGGREGATOR_NODE":snapshot_state(state)})
+        state.history.append({f"NODE_AGGREGATOR_it{state.n_iterations}":snapshot_state(state)})
         return state
 
     def validator(self, state: AgentState) -> AgentState:
         """Valida el código generado y emite un juicio que se usa para decidir si se finaliza o no el proceso"""
-        prompt_validator = Path(f'{self.prompt_path}user_validator.txt').read_text()
-        prompt_system = Path(f'{self.prompt_path}sys_generator.txt').read_text()
+        prompt_validator = Path(f'{self.prompt_path}/user_validator.txt').read_text()
+        prompt_system = Path(f'{self.prompt_path}/sys_generator.txt').read_text()
 
         prompt_validator = prompt_validator.format(
             descripcion_usuario = state.descripcion,
@@ -118,7 +118,7 @@ class Agent:
         print('-'*30,'>')
         print(f"VALIDATOR:\n{state}")
         print('<','-'*30)
-        state.history.append({f"VALIDATOR_NODE":snapshot_state(state)})
+        state.history.append({f"NODE_VALIDATOR_it{state.n_iterations}":snapshot_state(state)})
         if not state.process_done:
             state.n_iterations += 1
         return state
@@ -137,18 +137,18 @@ class Agent:
         if code==0:
             state.feedback = "OK"
             state.process_done = (state.feedback.upper() == "OK") or state.n_iterations>10
-            state.history.append({f"LINTER_NODE":snapshot_state(state)})
+            state.history.append({f"NODE_LINTER_it{state.n_iterations}":snapshot_state(state)})
             return state
         state.feedback = f"A continuación, los problemas detectados por el linter Ruff: {stdout}"
         state.process_done = state.n_iterations>50
-        state.history.append({f"LINTER_NODE":snapshot_state(state)})
+        state.history.append({f"NODE_LINTER_it{state.n_iterations}":snapshot_state(state)})
         if not state.process_done:
             state.n_iterations += 1
         return state
 
     def security(self, state: AgentState) -> AgentState:
         """Nodo de seguridad que detecta si el prompt del usuario es peligroso o no"""
-        prompt_security = Path(f'{self.prompt_path}sec_layer.txt').read_text()
+        prompt_security = Path(f'{self.prompt_path}/sec_layer.txt').read_text()
 
         prompt_security = prompt_security.format(
             descripcion = state.descripcion
@@ -165,7 +165,7 @@ class Agent:
         print('-'*30,'>')
         print(f"SECURITY:\n{state}")
         print('<','-'*30)
-        state.history.append({f"SECURITY_NODE":snapshot_state(state)})
+        state.history.append({f"NODE_SECURITY_it{state.n_iterations}":snapshot_state(state)})
 
         return state        
 

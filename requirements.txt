@@ -2,3 +2,6 @@ python-dotenv
 langgraph
 openai
 ruff
+fastapi
+uvicorn
+streamlit
