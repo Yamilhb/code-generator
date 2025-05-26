@@ -71,3 +71,25 @@ def snapshot_state(state):
 def agent_history(history,file_path=output_path):
     with open(os.path.join(file_path,"history.json"), "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=4)
+
+
+def list_files_recursively(path, base=""):
+    """Devuelve la estructura de archivos/carpeta en forma de árbol."""
+    items = []
+    for entry in sorted(os.listdir(path)):
+        full_path = os.path.join(path, entry)
+        rel_path = os.path.join(base, entry)
+        if os.path.isdir(full_path):
+            items.append({
+                "type": "folder",
+                "name": entry,
+                "path": rel_path,
+                "children": list_files_recursively(full_path, rel_path)
+            })
+        else:
+            items.append({
+                "type": "file",
+                "name": entry,
+                "path": rel_path
+            })
+    return items

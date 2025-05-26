@@ -4,4 +4,3 @@ openai
 ruff
 fastapi
 uvicorn
-streamlit
