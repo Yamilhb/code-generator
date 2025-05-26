@@ -1,2 +1,2 @@
 # code-generator
-Application that generates functional code
+Application that generates python applications.
