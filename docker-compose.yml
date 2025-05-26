@@ -7,3 +7,14 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+
+  frontend:
+    build:
+      context: ./app/frontend
+    container_name: code-generator-frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app/frontend:/app
+    depends_on:
+      - app
