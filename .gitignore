@@ -1,3 +1,8 @@
+# Random files
+requirements_note.txt
+app/explora.ipynb
+app/output/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -130,6 +135,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv_notebook
 env/
 venv/
 ENV/

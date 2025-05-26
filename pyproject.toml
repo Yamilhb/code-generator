@@ -1,0 +1,5 @@
+[tool.ruff]
+lint.select = ["E", "F"]           # E: errores de estilo, F: errores de código (como F821)
+lint.ignore = ["F401"]             # Por ejemplo, ignora "import no usado"
+line-length = 100
+target-version = "py311"
