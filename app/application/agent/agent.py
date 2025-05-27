@@ -26,7 +26,7 @@ class Agent:
         graph.add_conditional_edges(
             "security",
             self.sec_done,
-            {True: "generator1", False: "finisher"}
+            {True: "finisher", False: "generator1"}
         )
         graph.add_edge("generator1", "generator2")
         graph.add_edge("generator2", "generator3")
@@ -157,14 +157,11 @@ class Agent:
         feedback = self.llm.chat(prompt=prompt_security,sys_promt=None)
         state.feedback = f"Prompt {feedback}"
 
-        state.process_done = (feedback.lower() == "seguro")
+        state.process_done = (feedback.lower() != "seguro")
 
-        if not state.process_done:
+        if state.process_done:
             clean_output()
 
-        print('-'*30,'>')
-        print(f"SECURITY:\n{state}")
-        print('<','-'*30)
         state.history.append({f"NODE_SECURITY_it{state.n_iterations}":snapshot_state(state)})
 
         return state        

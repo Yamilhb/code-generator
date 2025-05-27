@@ -23,7 +23,17 @@ async def generate_code(request: GenerationRequest):
 
     result_state = agent.run(descripcion=request.prompt)
 
-    if result_state["process_done"]:
+    if result_state["process_done"] and ("warning: this action could be dangerous"in result_state["feedback"].lower()):
+        return GenerationResponse(
+            message="Warning: The request is potentially dangerous. No code has been generated.",
+            download_url="/download/project.zip"
+        )
+    elif result_state["process_done"] and ("request is out of context"in result_state["feedback"].lower()):
+        return GenerationResponse(
+            message="Warning: The request is out of context. No code has been generated. Please repeat the request.",
+            download_url="/download/project.zip"
+        )
+    elif result_state["process_done"]:
         return GenerationResponse(
             message="Code generated successfully.",
             download_url="/download/project.zip"
