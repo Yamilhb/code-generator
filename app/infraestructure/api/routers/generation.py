@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query,File, UploadFile, Form
 from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
 from app.domain.fastapi_classes import GenerationRequest, GenerationResponse
 from app.application.agent.agent import Agent
 from app.infraestructure.llm.model import IA
 from app.infraestructure.file_utils.utils import output_path, list_files_recursively
 from pathlib import Path
+import logging
+logger = logging.getLogger(__name__)
 
 OUTPUT_DIR = Path(output_path)
 
@@ -16,12 +18,22 @@ router = APIRouter()
 prompt_path = Path(__file__).resolve().parent.parent.parent.parent / 'resources/prompts/'
 
 @router.post("/generate_code", response_model=GenerationResponse)
-async def generate_code(request: GenerationRequest):
+#async def generate_code(request: GenerationRequest):
+async def generate_code(
+    prompt: str = Form(...),
+    api_key: str = Form(...),
+    image_file: UploadFile = File(None)
+):
+    logger.info("Function router generate_code")
 
-    llm = IA(request.api_key)
-    agent = Agent(llm=llm, prompt_path=str(prompt_path))
 
-    result_state = agent.run(descripcion=request.prompt)
+    llm = IA(api_key)
+    image_bytes = await image_file.read() if image_file else None
+
+
+    agent = Agent(llm=llm, prompt_path=str(prompt_path), image=image_bytes)
+
+    result_state = agent.run(descripcion=prompt)
 
     if result_state["process_done"] and ("warning: this action could be dangerous"in result_state["feedback"].lower()):
         return GenerationResponse(
@@ -44,6 +56,7 @@ async def generate_code(request: GenerationRequest):
 
 @router.get("/list_project", response_class=JSONResponse)
 async def list_project():
+    logger.info("Function router list_project")
     if not OUTPUT_DIR.exists():
         return JSONResponse(content={"error": "No project found."}, status_code=404)
     return JSONResponse(content=list_files_recursively(OUTPUT_DIR))
@@ -51,6 +64,7 @@ async def list_project():
 
 @router.get("/get_file", response_class=PlainTextResponse)
 async def get_file(path: str = Query(..., description="Ruta relativa del archivo dentro del proyecto generado")):
+    logger.info("Function router get_file")
     # Armamos la ruta absoluta de forma segura
     base_dir = OUTPUT_DIR.resolve()
     abs_file = (OUTPUT_DIR / path).resolve()
@@ -68,6 +82,7 @@ async def get_file(path: str = Query(..., description="Ruta relativa del archivo
 
 @router.get("/download/project.zip")
 def download_zip():
+    logger.info("Function router download_zip")
     base_dir = OUTPUT_DIR.resolve()
     zip_path = Path(base_dir/"project.zip")
     if zip_path.exists():

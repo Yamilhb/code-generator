@@ -1,8 +1,10 @@
 from pydantic import BaseModel
+from fastapi import File, UploadFile, Form
 
 class GenerationRequest(BaseModel):
-    prompt: str
-    api_key: str
+    prompt: str = Form(...),
+    api_key: str = Form(...),
+    image_file: UploadFile = File(None)
 
 class GenerationResponse(BaseModel):
     message: str

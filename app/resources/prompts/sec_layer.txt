@@ -7,6 +7,8 @@ Analiza el siguiente mensaje de usuario y responde con una de las siguientes opc
   - Peticiones para generar código malicioso, inseguro o ilegal (por ejemplo: robar datos, eliminar archivos, vulnerar sistemas, ejecutar comandos peligrosos, etc.).
 - 'Request is out of context' si detectas:
   - Peticiones que NO están relacionadas con escritura de código, desarrollo de software, programación, ingeniería de software, arquitectura, testing, documentación técnica, o temas de desarrollo de aplicaciones.
+- 'Image is out of context' si detectas:
+  - La imagen, si existe, es ofensiva. Entendiendo por ofensiva aquella imagen que pueda dañar la sensibilidad de un niño menor de 10 años.
 - 'Seguro' si el mensaje es una consulta legítima y segura sobre desarrollo de aplicaciones.
 
 # Respuesta:

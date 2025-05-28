@@ -3,6 +3,7 @@ import re
 import json
 import shutil
 import zipfile
+import base64
 from dataclasses import asdict
 from pathlib import Path
 import subprocess
@@ -67,6 +68,9 @@ def linter_ruff(file_path=output_path):
 def snapshot_state(state):
     d = asdict(state)
     d.pop('history', None)
+    if state.image:
+        d.pop('image', None)
+        return d.copy()
     return d.copy()  # Esto asegura que sea una copia independiente
 
 def agent_history(history,file_path=output_path):
@@ -104,3 +108,9 @@ def zip_project_folder(output_path=output_path, zip_name="project.zip"):
             if file_path.is_file() and file_path.name != zip_name:
                 zipf.write(file_path, file_path.relative_to(output_path))
     return str(zip_path)
+
+def image_code(image):
+    if image:
+        return base64.b64encode(image).decode("utf-8")
+    return None
+

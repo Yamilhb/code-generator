@@ -4,3 +4,4 @@ openai
 ruff
 fastapi
 uvicorn
+python-multipart

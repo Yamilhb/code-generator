@@ -75,8 +75,12 @@ prompt = st.text_area(
     key="prompt"
 )
 
-# --- STEP 2: API Key ---
-st.markdown("<div class='step-title'>Step 2: Paste your OpenAI API key</div>", unsafe_allow_html=True)
+# --- STEP 3: API Key ---
+st.markdown("<div class='step-title'>Step 2: Upload an image (optional)</div>", unsafe_allow_html=True)
+uploaded_file = st.file_uploader("Upload an image to help your description", type=["jpg", "jpeg", "png"])
+
+# --- STEP 3: API Key ---
+st.markdown("<div class='step-title'>Step 3: Paste your OpenAI API key</div>", unsafe_allow_html=True)
 api_token = st.text_input(
     "",
     placeholder="sk-...",
@@ -92,7 +96,9 @@ with col_run[1]:
 
 # --- Send request and feedback logic ---
 API_URL = f"{APP_URL}/generate_code"
+
 if generate:
+    files = {"image_file": uploaded_file} if uploaded_file else None
     st.session_state['last_error_feedback'] = None
     if not prompt.strip():
         st.warning("Please describe the application you want to generate.")
@@ -105,7 +111,10 @@ if generate:
                 "api_key": api_token
             }
             try:
-                response = requests.post(API_URL, json=payload, timeout=120)
+                if files:
+                    response = requests.post(API_URL, data=payload, files=files, timeout=300)
+                else:
+                    response = requests.post(API_URL, json=payload, timeout=300)
                 if response.status_code == 200:
                     data = response.json()
                     msg = data.get("message", "")
