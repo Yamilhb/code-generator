@@ -9,6 +9,9 @@ from pathlib import Path
 
 ZIP_URL = os.getenv("ZIP_URL")
 APP_URL = os.getenv("APP_URL")
+MAX_IMAGE_SIZE_MB = int(os.getenv("MAX_IMAGE_SIZE_MB"))
+MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
+
 
 # ---- MINIMALIST/PRO STYLE ----
 st.set_page_config(page_title="AI-Assisted App Builder", layout="wide")
@@ -79,6 +82,15 @@ prompt = st.text_area(
 st.markdown("<div class='step-title'>Step 2: Upload an image (optional)</div>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader("Upload an image to help your description", type=["jpg", "jpeg", "png"])
 
+image_ok = True
+if uploaded_file is not None:
+    if uploaded_file.size > MAX_IMAGE_SIZE_BYTES:
+        st.error(f"Image is too large! Please upload a file smaller than {MAX_IMAGE_SIZE_MB} MB.")
+        image_ok = False 
+else:
+    uploaded_file = None  
+
+
 # --- STEP 3: API Key ---
 st.markdown("<div class='step-title'>Step 3: Paste your OpenAI API key</div>", unsafe_allow_html=True)
 api_token = st.text_input(
@@ -100,6 +112,8 @@ API_URL = f"{APP_URL}/generate_code"
 if generate:
     files = {"image_file": uploaded_file} if uploaded_file else None
     st.session_state['last_error_feedback'] = None
+    if not image_ok:
+        st.warning("The image is too large. Please upload a smaller file.")
     if not prompt.strip():
         st.warning("Please describe the application you want to generate.")
     elif not api_token.strip():
@@ -114,7 +128,7 @@ if generate:
                 if files:
                     response = requests.post(API_URL, data=payload, files=files, timeout=300)
                 else:
-                    response = requests.post(API_URL, json=payload, timeout=300)
+                    response = requests.post(API_URL, data=payload, timeout=300)
                 if response.status_code == 200:
                     data = response.json()
                     msg = data.get("message", "")

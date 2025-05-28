@@ -21,3 +21,4 @@ services:
     environment:
       - APP_URL=http://app:8000/api
       - ZIP_URL=http://localhost:8000/api/download/project.zip
+      - MAX_IMAGE_SIZE_MB=4
