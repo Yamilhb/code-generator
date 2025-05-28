@@ -1,6 +1,14 @@
 import streamlit as st
-import requests
 from streamlit_ace import st_ace
+import requests
+import time
+from dotenv import load_dotenv
+import os
+from pathlib import Path
+
+
+ZIP_URL = os.getenv("ZIP_URL")
+APP_URL = os.getenv("APP_URL")
 
 # ---- MINIMALIST/PRO STYLE ----
 st.set_page_config(page_title="AI-Assisted App Builder", layout="wide")
@@ -83,7 +91,7 @@ with col_run[1]:
     generate = st.button("RUN!", key="main_run_btn")
 
 # --- Send request and feedback logic ---
-API_URL = "http://app:8000/api/generate_code"
+API_URL = f"{APP_URL}/generate_code"
 if generate:
     st.session_state['last_error_feedback'] = None
     if not prompt.strip():
@@ -124,81 +132,140 @@ if st.session_state.get('last_error_feedback'):
     st.error(st.session_state['last_error_feedback'])
 
 # ---- FILE EXPLORER ----
+
+def check_zip_exists():
+    # Consulta al backend si el ZIP existe (HEAD sería mejor pero usamos GET)
+    resp = requests.get(f"{APP_URL}/download/project.zip", stream=True)
+    return resp.status_code == 200
+
 if st.session_state.get('download_url'):
     st.markdown("---")
-    st.markdown("<div class='step-title' style='margin-bottom:0.3em;'>Explore your generated project</div>", unsafe_allow_html=True)
 
-    def fetch_tree():
-        url = "http://app:8000/api/list_project"
-        try:
-            resp = requests.get(url, timeout=20)
-            return resp.json() if resp.status_code == 200 else []
-        except Exception as e:
-            st.warning(f"Failed to load structure: {e}")
-            return []
-
-    tree = fetch_tree()
-    project_tree = [{
-        "type": "folder",
-        "name": "root",
-        "path": "",
-        "children": tree
-    }]
-
-    # File selection state
-    if "selected_file_global" not in st.session_state:
-        st.session_state["selected_file_global"] = None
-
-    def render_tree_indent(nodes, parent_path="", level=0):
-        for node in nodes:
-            current_path = f"{parent_path}/{node['name']}".lstrip("/")
-            # Cada nivel de profundidad agrega columnas vacías
-            cols = st.columns([0.05] * level + [0.06, 1 - 0.05*level - 0.06])
-            if node["type"] == "folder":
-                with cols[level]:
-                    toggled = st.button(
-                        "+" if not st.session_state.get(f"expand_{current_path}", node['name'] == "root") else "–",
-                        key=f"btn_{current_path}",
-                        help="Expand/Collapse folder"
-                    )
-                with cols[level+1]:
-                    st.markdown(f"<b>📁 {node['name']}</b>", unsafe_allow_html=True)
-                if toggled:
-                    st.session_state[f"expand_{current_path}"] = not st.session_state.get(f"expand_{current_path}", node['name'] == "root")
-                if st.session_state.get(f"expand_{current_path}", node['name'] == "root"):
-                    render_tree_indent(node["children"], current_path, level+1)
+    # Card/Panel para el explorador y la descarga
+    with st.container():
+        # Encabezado + botón de descarga en la misma fila
+        explorer_cols = st.columns([0.7, 0.3])
+        with explorer_cols[0]:
+            st.markdown("<div class='step-title' style='margin-bottom:0.3em;text-align:left;'>📁 Explore your generated project</div>", unsafe_allow_html=True)
+        with explorer_cols[1]:
+            if check_zip_exists():
+                st.markdown(
+                    f"""
+                    <a href="{ZIP_URL}" target="_blank" style="
+                        display:inline-block;
+                        background:#4a4e69;
+                        color:white;
+                        border:none;
+                        padding:8px 22px;
+                        border-radius:8px;
+                        font-weight:600;
+                        font-size:1.05em;
+                        float:right;
+                        margin-top:8px;
+                        text-decoration:none;
+                        transition:background 0.22s;
+                    ">
+                        📦 Download ZIP
+                    </a>
+                    """,
+                    unsafe_allow_html=True
+                )
             else:
-                with cols[level+1]:
-                    select_key = f"select_{current_path}"
-                    if st.button(f"📄 {node['name']}", key=select_key):
-                        st.session_state["selected_file_global"] = current_path
-                    if st.session_state.get("selected_file_global", "") == current_path:
-                        st.markdown(f"<span class='selected-file'>[Selected]</span>", unsafe_allow_html=True)
+                st.info("ℹ️ The ZIP will be available after generation.")
 
+        # Fetch tree structure
+        def fetch_tree():
+            url = f"{APP_URL}/list_project"
+            try:
+                resp = requests.get(url, timeout=20)
+                return resp.json() if resp.status_code == 200 else []
+            except Exception as e:
+                st.warning(f"Failed to load structure: {e}")
+                return []
 
-    render_tree_indent(project_tree)
-    selected_file = st.session_state.get("selected_file_global", None)
-    if selected_file:
-        real_path = selected_file[len("root/"):] if selected_file.startswith("root/") else selected_file
-        st.info(f"Selected file: `{real_path}`")
-        url_file = f"http://app:8000/api/get_file?path={real_path}"
-        try:
-            file_resp = requests.get(url_file, timeout=10)
-            if file_resp.status_code == 200:
-                file_content = file_resp.text
-                # Minimal syntax highlight
-                if real_path.endswith((".py", ".txt", ".md", ".json", ".yaml", ".yml", ".toml", "Dockerfile")):
-                    st_ace(
-                        value=file_content,
-                        language="python" if real_path.endswith(".py") else "text",
-                        theme="chrome",
-                        readonly=True,
-                        height=400,
-                        key=f"ace_{real_path}",
-                    )
+        tree = fetch_tree()
+        project_tree = [{
+            "type": "folder",
+            "name": "root",
+            "path": "",
+            "children": tree
+        }]
+
+        # Estado global de archivo seleccionado
+        if "selected_file_global" not in st.session_state:
+            st.session_state["selected_file_global"] = None
+
+        def render_tree_indent(nodes, parent_path="", level=0):
+            for node in nodes:
+                current_path = f"{parent_path}/{node['name']}".lstrip("/")
+                indent_px = 20 * level
+                if node["type"] == "folder":
+                    exp_key = f"expand_{current_path}"
+                    if exp_key not in st.session_state:
+                        st.session_state[exp_key] = node['name'] == "root"
+                    expander_row = st.columns([0.05, 0.9])
+                    with expander_row[0]:
+                        toggled = st.button(
+                            "–" if st.session_state[exp_key] else "+",
+                            key=f"btn_{current_path}",
+                            help="Expand/Collapse folder"
+                        )
+                        if toggled:
+                            st.session_state[exp_key] = not st.session_state[exp_key]
+                    with expander_row[1]:
+                        st.markdown(
+                            f"<div style='margin-left:{indent_px}px;display:inline-block;'><b>📁 {node['name']}</b></div>",
+                            unsafe_allow_html=True
+                        )
+                    if st.session_state[exp_key]:
+                        render_tree_indent(node["children"], current_path, level + 1)
                 else:
-                    st.code(file_content)
-            else:
-                st.warning("Could not load the file (does it exist?)")
-        except Exception as e:
-            st.warning(f"Failed to load structure: {e}")
+                    sel = st.session_state.get("selected_file_global", "") == current_path
+                    file_cols = st.columns([0.05, 0.9])
+                    with file_cols[1]:
+                        file_style = (
+                            f"margin-left:{indent_px+26}px;display:inline-block;"
+                            "background:#22223b;color:#fff;padding:4px 14px 4px 8px;"
+                            "border-radius:9px;font-size:0.97em;font-family:monospace;"
+                            "margin-top:3px;margin-bottom:3px;"
+                            "box-shadow:0 1px 3px #ddd;"
+                            f"{'box-shadow:0 0 0 2px #c9ada7;' if sel else ''}"
+                        )
+                        if st.button(f"📄 {node['name']}", key=f"select_{current_path}"):
+                            st.session_state["selected_file_global"] = current_path
+                        # Feedback visual, solo texto verde a la derecha
+                        if sel:
+                            st.markdown(
+                                f"<span style='color:#c9ada7;margin-left:8px;font-weight:bold;'>[Selected]</span>",
+                                unsafe_allow_html=True
+                            )
+
+                # No action for row[2] (espaciador)
+
+        render_tree_indent(project_tree)
+
+        # Mostrar el archivo seleccionado
+        selected_file = st.session_state.get("selected_file_global", None)
+        if selected_file:
+            real_path = selected_file[len("root/"):] if selected_file.startswith("root/") else selected_file
+            st.info(f"Selected file: `{real_path}`")
+            url_file = f"{APP_URL}/get_file?path={real_path}"
+            try:
+                file_resp = requests.get(url_file, timeout=10)
+                if file_resp.status_code == 200:
+                    file_content = file_resp.text
+                    if real_path.endswith((".py", ".txt", ".md", ".json", ".yaml", ".yml", ".toml", "Dockerfile")):
+                        st_ace(
+                            value=file_content,
+                            language="python" if real_path.endswith(".py") else "text",
+                            theme="chrome",
+                            readonly=True,
+                            height=400,
+                            key=f"ace_{real_path}",
+                        )
+                    else:
+                        st.code(file_content)
+                else:
+                    st.warning("Could not load the file (does it exist?)")
+            except Exception as e:
+                st.warning(f"Failed to load structure: {e}")

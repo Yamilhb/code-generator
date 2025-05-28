@@ -18,3 +18,6 @@ services:
       - ./app/frontend:/app
     depends_on:
       - app
+    environment:
+      - APP_URL=http://app:8000/api
+      - ZIP_URL=http://localhost:8000/api/download/project.zip

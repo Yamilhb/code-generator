@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
 from app.domain.fastapi_classes import GenerationRequest, GenerationResponse
 from app.application.agent.agent import Agent
 from app.infraestructure.llm.model import IA
@@ -64,3 +64,13 @@ async def get_file(path: str = Query(..., description="Ruta relativa del archivo
     with open(abs_file, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
     return content
+
+
+@router.get("/download/project.zip")
+def download_zip():
+    base_dir = OUTPUT_DIR.resolve()
+    zip_path = Path(base_dir/"project.zip")
+    if zip_path.exists():
+        return FileResponse(zip_path, filename="project.zip", media_type="application/zip")
+    else:
+        raise HTTPException(status_code=404, detail="ZIP not found")

@@ -2,6 +2,7 @@ import os
 import re
 import json
 import shutil
+import zipfile
 from dataclasses import asdict
 from pathlib import Path
 import subprocess
@@ -93,3 +94,13 @@ def list_files_recursively(path, base=""):
                 "path": rel_path
             })
     return items
+
+
+def zip_project_folder(output_path=output_path, zip_name="project.zip"):
+    """Se crea el archivo zip del proyecto generado"""
+    zip_path = output_path / zip_name
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for file_path in output_path.rglob("*"):
+            if file_path.is_file() and file_path.name != zip_name:
+                zipf.write(file_path, file_path.relative_to(output_path))
+    return str(zip_path)

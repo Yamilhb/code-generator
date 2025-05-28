@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, Any
 from langgraph.graph import StateGraph, END
 from app.domain.agent_state import AgentState
-from app.infraestructure.file_utils.utils import save_code, linter_ruff, snapshot_state, agent_history, clean_output
+from app.infraestructure.file_utils.utils import save_code, linter_ruff, snapshot_state, agent_history, clean_output, zip_project_folder
 
 class Agent:
     def __init__(self, llm, prompt_path):
@@ -175,6 +175,7 @@ class Agent:
     
     def finisher(self, state: AgentState) -> None:
         agent_history(state.history)
+        zip_project_folder()
     
     def run(self, descripcion: str) -> AgentState:
         state = AgentState(descripcion= descripcion)
