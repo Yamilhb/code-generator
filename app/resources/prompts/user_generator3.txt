@@ -19,6 +19,7 @@ Tu tarea es **generar una estructura de directorios que contenga código funcion
     * Ejemplo de salida:
     ```json\n{{"src/main.py": "# Este es el archivo principal\nprint('Hola mundo!')","README.md": "# Descripción del proyecto\nEste proyecto es un ejemplo."}}```
 - Siempre que sea posible incluye un README.md completo y detallado.
+- Si el usuario no especifica ningún lenguaje de programación, trabajarás con Python por defecto.
 
 ---
 
