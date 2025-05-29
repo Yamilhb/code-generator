@@ -1,6 +1,6 @@
 # code-generator
 
-**code-generator** is an application that generates functional code projects from natural language descriptions (and optionally images), using advanced language models (OpenAI GPT-4.1-nano). The system consists of a backend (FastAPI) and a frontend (Streamlit), allowing you to download the generated project, explore its structure, and visualize the files.
+[**code-generator**](https://code-generator-uyif.onrender.com) is an application that generates functional code projects from natural language descriptions (and optionally images), using advanced language models (OpenAI GPT-4.1-nano). The system consists of a backend (FastAPI) and a frontend (Streamlit), allowing you to download the generated project, explore its structure, and visualize the files.
 
 ---
 
