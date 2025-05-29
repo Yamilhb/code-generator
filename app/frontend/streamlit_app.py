@@ -67,7 +67,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---- MAIN TITLE ----
-st.markdown("<h1 style='font-family:Montserrat,Segoe UI,Arial,sans-serif;font-weight:650; color:#22223b; margin-bottom: 0.6em;'>🚀 AI-Assisted App Builder</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='font-family:Montserrat,Segoe UI,Arial,sans-serif;font-weight:650; color:#22223b; margin-bottom: 0.6em;'>AI-Assisted App Builder</h1>", unsafe_allow_html=True)
 
 # --- STEP 1: Prompt ---
 st.markdown("<div class='step-title'>Step 1: Describe your application</div>", unsafe_allow_html=True)
@@ -135,11 +135,11 @@ if generate:
                     st.session_state['download_url'] = data.get("download_url")
                     # Show warning in red if present
                     if ("Warning" in msg) or ("out of context" in msg):
-                        st.session_state['last_error_feedback'] = "🚨 " + msg
+                        st.session_state['last_error_feedback'] = "WARNING " + msg
                     elif "failed" in msg.lower():
                         st.error(msg)
                     else:
-                        st.success("🎉 The process is complete!")
+                        st.success("The process is complete!")
                         st.write(msg)
                 else:
                     st.error(f"Error: {response.text}")
