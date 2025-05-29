@@ -1,6 +1,9 @@
 from openai import OpenAI
 from app.infraestructure.file_utils.utils import image_code
+import os
 import logging
+
+OPENAI_MODEL = os.getenv("OPENAI_MODEL")
 logger = logging.getLogger(__name__)
 
 class IA():
@@ -8,7 +11,7 @@ class IA():
         self.key=key
         self.client = OpenAI(api_key=self.key)
 
-    def chat(self,prompt,sys_promt=None,image_file=None, model="gpt-4.1-nano",temperature=0):
+    def chat(self,prompt,sys_promt=None,image_file=None, model=OPENAI_MODEL,temperature=0):
         logger.info("Calling llm")
         if image_file:
             b64_image = image_code(image_file)
