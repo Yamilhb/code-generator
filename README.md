@@ -154,8 +154,10 @@ docker-compose up --build
 - [ ] Include support for PDF as input.
 - [ ] Improve the frontend (more professional design).
 - [ ] Allow iterative conversation with the user.
-- [ ] Improve handling of large images.
 - [ ] Possibility to select AI models from other providers.
+- [ ] Possibility to select AI models from other providers.
+- [ ] Possibility for the agent to execute code.
+- [ ] If this is achieved, we can leverage the success or failure of the execution to train an RL model.
 
 ---
 

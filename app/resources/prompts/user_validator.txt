@@ -13,9 +13,18 @@ Además, la respuesta debe ser siempre en formato JSON, usando la siguiente estr
     * Sin ninguna explicación ni texto fuera del objeto JSON.
     * Ejemplo de salida:
     ```json\n{{"src/main.py": "# Este es el archivo principal\nprint('Hola mundo!')","README.md": "# Descripción del proyecto\nEste proyecto es un ejemplo."}}```
-    * El json debe ser parseable.
+    * - Es **importante** que el json pueda ser parseado por json.loads(). Por ejemplo, si se incluye una barra invertida, debe ser un escape válido ('\"', "\\", "\/", "\b", "\f", "\n", "\r", "\t", "\uXXXX"), de lo contrarío hay que añadirle otra barra invertida (por ejemplo, de esto "\g" habría que pasar a esto "\\g").
+        Especifico más, el json debe ser parseable por:
+        ```
+            pattern = r"({{[\s\S]*}})"
+            matches = re.findall(pattern, text, re.DOTALL)
+            if matches:
+                output = [json.loads(match.strip()) for match in matches]
+            else:
+                output = [json.loads(text)]
+        ``` 
 
-2. **Finalización de la aplicación**: El código de cada módulo debe estar completo; no puede estar cortado o incompleto.
+2. **Finalización de la aplicación**: El código de cada módulo debe estar completo; no puede estar cortado o incompleto. **IMPORTANTE**: la estructura del proyecto y los archivos con el código **NO debe ir dentro del README.md**, de ser así, el proyecto no puede estar `OK`.
 3. **Cobertura de la solicitud**: El código debe reflejar correctamente lo solicitado por el usuario.
 4. **Claridad y legibilidad**: No debe haber ambigüedades, fragmentos confusos o mal comentados. Por ejemplo, no se pueden ejecutar funciones propias que no hayan sido definidas previamente, e importadas.
 5. **Consistencia**: El comportamiento descrito debe tener sentido dentro del contexto de la solicitud. Cada bloque de código debe ser consistente con la información dada.

@@ -19,9 +19,18 @@ Tu tarea es **generar una estructura de directorios que contenga código funcion
     * No incluyas ninguna explicación ni texto fuera del objeto JSON.
     * Ejemplo de salida:
     ```json\n{{"src/main.py": "# Este es el archivo principal\nprint('Hola mundo!')","README.md": "# Descripción del proyecto\nEste proyecto es un ejemplo."}}```
-- Siempre que sea posible incluye un README.md completo y detallado.
+- Siempre que sea posible incluye un README.md completo y detallado. **IMPORTANTE**: El json con la estructura del proyecto y los archivos con el código **NO debe ir dentro del README.md**.
 - Si el usuario no especifica ningún lenguaje de programación, trabajarás con Python por defecto.
-
+- Es **importante** que el json pueda ser parseado por json.loads(). Por ejemplo, si se incluye una barra invertida, debe ser un escape válido ('\"', "\\", "\/", "\b", "\f", "\n", "\r", "\t", "\uXXXX"), de lo contrarío hay que añadirle otra barra invertida (por ejemplo, de esto "\g" habría que pasar a esto "\\g").
+Especifico más, el json debe ser parseable por:
+```
+    pattern = r"({{[\s\S]*}})"
+    matches = re.findall(pattern, text, re.DOTALL)
+    if matches:
+        output = [json.loads(match.strip()) for match in matches]
+    else:
+        output = [json.loads(text)]
+``` 
 ---
 
 # Ejemplos

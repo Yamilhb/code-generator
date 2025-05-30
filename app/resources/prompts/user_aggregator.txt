@@ -14,14 +14,25 @@ Recibirás una solicitud del usuario y tres versiones de la aplicación desarrol
 2. Evalúa cada propuesta de aplicación según su fidelidad a la solicitud y calidad estructural.
 3. Escribe una única aplicación final, bien estructurada (lo más modularizada posible) y con comentarios explicativos si es necesario.
 4. Si existe el apartado '*Feedback*', utilízalo para mejorar aún más la solución final.
-5. La respuesta debe ser siempre en formato JSON, usando la siguiente estructura:
+5. No te deshagas del archivo README.md, le puede servir al usuario para entender la aplicación. Sin embargo el **código del proyecto no debe estar dentro del README.md**. 
+6. La estructura del proyecto y los archivos con el código **NO debe ir dentro del README.md**.
+7. La respuesta debe ser siempre en formato JSON, usando la siguiente estructura:
     * Cada clave del objeto JSON es el path completo de un archivo (por ejemplo: "app/main.py", "app/infraestructure/modelo.py", "requirements.txt", "README.md").
     * El valor asociado a cada clave es el contenido textual completo de ese archivo, como un string.
     * No incluyas ninguna explicación ni texto fuera del objeto JSON.
     * Ejemplo de salida (es sólo un ejemplo, en la realidad serán mucho más complejas):
     ```json\n{{"src/main.py": "# Este es el archivo principal\nprint('Hola mundo!')","README.md": "# Descripción del proyecto\nEste proyecto es un ejemplo."}}```
     * El json debe ser parseable.
-
+- Es **importante** que el json pueda ser parseado por json.loads(). Por ejemplo, si se incluye una barra invertida, debe ser un escape válido ('\"', "\\", "\/", "\b", "\f", "\n", "\r", "\t", "\uXXXX"), de lo contrarío hay que añadirle otra barra invertida (por ejemplo, de esto "\g" habría que pasar a esto "\\g").
+Especifico más, el json debe ser parseable por:
+```
+    pattern = r"({{[\s\S]*}})"
+    matches = re.findall(pattern, text, re.DOTALL)
+    if matches:
+        output = [json.loads(match.strip()) for match in matches]
+    else:
+        output = [json.loads(text)]
+```
 ---
 
 ### Solicitud del usuario:

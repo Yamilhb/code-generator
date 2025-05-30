@@ -19,7 +19,7 @@ def crea_estructura(path, content):
     if dir_path and not os.path.exists(dir_path):
         os.makedirs(dir_path, exist_ok=True)
     crea_archivo(path, content)
-
+    
 def extrae_json(text):
 
     # Define the regular expression pattern to match JSON blocks
@@ -80,23 +80,30 @@ def agent_history(history,file_path=output_path):
 
 def list_files_recursively(path, base=""):
     """Devuelve la estructura de archivos/carpeta en forma de árbol."""
+    entries = sorted(os.listdir(path))
+    # Separar archivos y carpetas
+    archivos = [e for e in entries if os.path.isfile(os.path.join(path, e))]
+    carpetas = [e for e in entries if os.path.isdir(os.path.join(path, e))]
+
     items = []
-    for entry in sorted(os.listdir(path)):
+    # Primero archivos
+    for entry in archivos:
+        rel_path = os.path.join(base, entry)
+        items.append({
+            "type": "file",
+            "name": entry,
+            "path": rel_path
+        })
+    # Luego carpetas (recursivo)
+    for entry in carpetas:
         full_path = os.path.join(path, entry)
         rel_path = os.path.join(base, entry)
-        if os.path.isdir(full_path):
-            items.append({
-                "type": "folder",
-                "name": entry,
-                "path": rel_path,
-                "children": list_files_recursively(full_path, rel_path)
-            })
-        else:
-            items.append({
-                "type": "file",
-                "name": entry,
-                "path": rel_path
-            })
+        items.append({
+            "type": "folder",
+            "name": entry,
+            "path": rel_path,
+            "children": list_files_recursively(full_path, rel_path)
+        })
     return items
 
 
