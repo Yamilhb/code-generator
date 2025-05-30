@@ -5,6 +5,7 @@ WORKDIR /app
 # Copia solo los archivos necesarios para el frontend
 COPY streamlit_app.py .  
 COPY requirements.txt .
+COPY logo.png .
 
 # Instala solo lo necesario
 RUN pip install --upgrade pip
