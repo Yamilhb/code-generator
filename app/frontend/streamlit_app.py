@@ -12,9 +12,24 @@ APP_URL = os.getenv("APP_URL")
 MAX_IMAGE_SIZE_MB = int(os.getenv("MAX_IMAGE_SIZE_MB"))
 MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 
+logo_path = Path(__file__).parent / "logo.png"
+
 
 # ---- MINIMALIST/PRO STYLE ----
 st.set_page_config(page_title="AI-Assisted App Builder", layout="wide")
+col1, col2 = st.columns([5, 1])  # Ajusta el ancho según lo veas mejor
+
+with col1:
+    st.markdown(
+        "<h1 style='font-family:Montserrat,Segoe UI,Arial,sans-serif; "
+        "font-weight:650; color:#22223b; margin-bottom: 0.6em;'>"
+        "AI-Assisted App Builder"
+        "</h1>",
+        unsafe_allow_html=True,
+    )
+
+with col2:
+    st.image(str(logo_path), width=80)  # Ajusta el ancho si lo deseas
 
 st.markdown("""
     <style>
@@ -67,7 +82,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---- MAIN TITLE ----
-st.markdown("<h1 style='font-family:Montserrat,Segoe UI,Arial,sans-serif;font-weight:650; color:#22223b; margin-bottom: 0.6em;'>AI-Assisted App Builder</h1>", unsafe_allow_html=True)
+# st.markdown("<h1 style='font-family:Montserrat,Segoe UI,Arial,sans-serif;font-weight:650; color:#22223b; margin-bottom: 0.6em;'>AI-Assisted App Builder</h1>", unsafe_allow_html=True)
 
 # --- STEP 1: Prompt ---
 st.markdown("<div class='step-title'>Step 1: Describe your application</div>", unsafe_allow_html=True)
@@ -135,7 +150,7 @@ if generate:
                     st.session_state['download_url'] = data.get("download_url")
                     # Show warning in red if present
                     if ("Warning" in msg) or ("out of context" in msg):
-                        st.session_state['last_error_feedback'] = "WARNING " + msg
+                        st.session_state['last_error_feedback'] = "🚨" + msg
                     elif "failed" in msg.lower():
                         st.error(msg)
                     else:
