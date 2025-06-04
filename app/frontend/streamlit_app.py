@@ -15,9 +15,9 @@ MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 logo_path = Path(__file__).parent / "logo.png"
 
 openai_models = [
-    "gpt-4.1",
-    "gpt-4.1-mini",
     "gpt-4.1-nano",
+    "gpt-4.1-mini",
+    "gpt-4.1",
     "gpt-4o"
     # Agrega otros modelos que uses
 ]

@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Optional
+from langgraph.managed.is_last_step import RemainingSteps
 
 @dataclass
 class AgentState:
     descripcion: str
     image:Optional[str] = None
+    remaining_steps: RemainingSteps = 0
     n_iterations: int = 0
     generated_code_1: str = ""
     generated_code_2: str = ""

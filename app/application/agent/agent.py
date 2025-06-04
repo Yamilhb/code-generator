@@ -63,7 +63,7 @@ class Agent:
 
     def _generator(self, state: AgentState, slot: str) -> AgentState:
         """Genera un nuevo código"""
-        logger.info(f"Node _generator iter: {state.n_iterations}")
+        logger.info(f"Node _generator iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         promt_select = {
             "generated_code_1":"user_generator1.txt",
@@ -91,7 +91,7 @@ class Agent:
     
     def aggregator(self, state: AgentState) -> AgentState:
         """Toma los 3 casos generados y genera un último caso"""
-        logger.info(f"Node aggregator iter: {state.n_iterations}")
+        logger.info(f"Node aggregator iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         prompt_aggregator = Path(f'{self.prompt_path}/user_aggregator.txt').read_text()
         prompt_system = Path(f'{self.prompt_path}/sys_generator.txt').read_text()
@@ -117,7 +117,7 @@ class Agent:
 
     def validator(self, state: AgentState) -> AgentState:
         """Valida el código generado y emite un juicio que se usa para decidir si se finaliza o no el proceso"""
-        logger.info(f"Node validator iter: {state.n_iterations}")
+        logger.info(f"Node validator iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         prompt_validator = Path(f'{self.prompt_path}/user_validator.txt').read_text()
         prompt_system = Path(f'{self.prompt_path}/sys_generator.txt').read_text()
@@ -134,39 +134,45 @@ class Agent:
         state.feedback = feedback
 
         # Aquí se define el estado del flujo
-        state.process_done = (feedback.upper() == "OK") or state.n_iterations>10
+        state.process_done = (feedback.upper() == "OK") or state.remaining_steps<=10
 
         state.history.append({f"NODE_VALIDATOR_it{state.n_iterations}":snapshot_state(state)})
         if not state.process_done:
             state.n_iterations += 1
+        if state.remaining_steps<=10:
+            state.feedback = "Proceso finalizado por límite de recurrencia"
         return state
 
     def save(self, state: AgentState) -> None:
         """Guarda el código generado"""
-        logger.info(f"Node save iter: {state.n_iterations}")
+        logger.info(f"Node save iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         save_code(state.generated_code)
 
     def linter(self, state:AgentState) -> AgentState:
         """Nodo de validación con el liter ruff"""
-        logger.info(f"Node linter iter: {state.n_iterations}")
+        logger.info(f"Node linter iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         code, stdout = linter_ruff()
         if code==0:
             state.feedback = "OK"
-            state.process_done = (state.feedback.upper() == "OK") or state.n_iterations>10
+            state.process_done = (state.feedback.upper() == "OK") or state.remaining_steps<=10
+            if state.remaining_steps<=10:
+                state.feedback = "Proceso finalizado por límite de recurrencia"
             state.history.append({f"NODE_LINTER_it{state.n_iterations}":snapshot_state(state)})
             return state
         state.feedback = f"A continuación, los problemas detectados por el linter Ruff: {stdout}"
-        state.process_done = state.n_iterations>50
+        state.process_done = state.remaining_steps<=10
         state.history.append({f"NODE_LINTER_it{state.n_iterations}":snapshot_state(state)})
         if not state.process_done:
             state.n_iterations += 1
+        if state.remaining_steps<=10:
+            state.feedback = "Proceso finalizado por límite de recurrencia"
         return state
 
     def security(self, state: AgentState) -> AgentState:
         """Nodo de seguridad que detecta si el prompt del usuario es peligroso o no"""
-        logger.info(f"Node security iter: {state.n_iterations}")
+        logger.info(f"Node security iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         prompt_security = Path(f'{self.prompt_path}/sec_layer.txt').read_text()
 
@@ -191,22 +197,22 @@ class Agent:
 
     def sec_done(self, state: AgentState) -> bool:
         """Nodo de decisión que confirma si continua el flujo o el mensaje es peligroso y hay que finalizarlo"""
-        logger.info(f"Node sec_done iter: {state.n_iterations}")
+        logger.info(f"Node sec_done iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         return state.process_done
 
     def check_done(self, state: AgentState) -> bool:
-        logger.info(f"Node check_done iter: {state.n_iterations}")
+        logger.info(f"Node check_done iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
 
         return state.process_done
     
     def finisher(self, state: AgentState) -> None:
-        logger.info(f"Node finisher iter: {state.n_iterations}")
+        logger.info(f"Node finisher iter: {state.n_iterations}, remaining_steps: {state.remaining_steps}")
         agent_history(state.history)
         zip_project_folder()
     
     def run(self, descripcion: str) -> AgentState:
         logger.info(f"Node run: START")
         state = AgentState(descripcion= descripcion, image=self.image)
-        final_state = self.graph.invoke(state, {"recursion_limit": 100})
+        final_state = self.graph.invoke(state, {"recursion_limit": 210})
         return final_state
