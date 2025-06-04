@@ -3,16 +3,18 @@ from app.infraestructure.file_utils.utils import image_code
 import os
 import logging
 
-OPENAI_MODEL = os.getenv("OPENAI_MODEL")
+#OPENAI_MODEL = os.getenv("OPENAI_MODEL")
 logger = logging.getLogger(__name__)
 
 class IA():
-    def __init__(self, key):
+    def __init__(self, key, modelo):
         self.key=key
+        self.modelo = modelo
         self.client = OpenAI(api_key=self.key)
 
-    def chat(self,prompt,sys_promt=None,image_file=None, model=OPENAI_MODEL,temperature=0):
+    def chat(self,prompt,sys_promt=None,image_file=None,temperature=0):
         logger.info("Calling llm")
+        model = self.modelo
         if image_file:
             b64_image = image_code(image_file)
 
@@ -47,4 +49,4 @@ class IA():
             return response, prompt_tokens, completion_tokens
         except Exception as e:
             logger.exception(f"Error in llm: {e}")
-            return f"Error in chat: {e}"
+            return f"Error in llm: {e}", 0, 0

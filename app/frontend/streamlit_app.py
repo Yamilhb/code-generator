@@ -14,6 +14,13 @@ MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
 
 logo_path = Path(__file__).parent / "logo.png"
 
+openai_models = [
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "gpt-4o"
+    # Agrega otros modelos que uses
+]
 
 # ---- MINIMALIST/PRO STYLE ----
 st.set_page_config(page_title="AI-Assisted App Builder", layout="wide")
@@ -93,7 +100,7 @@ prompt = st.text_area(
     key="prompt"
 )
 
-# --- STEP 3: API Key ---
+# --- STEP 2: Image ---
 st.markdown("<div class='step-title'>Step 2: Upload an image (optional)</div>", unsafe_allow_html=True)
 uploaded_file = st.file_uploader("Upload an image to help your description", type=["jpg", "jpeg", "png"])
 
@@ -105,9 +112,17 @@ if uploaded_file is not None:
 else:
     uploaded_file = None  
 
+# --- STEP 3: Select OpenAI model ---
+st.markdown("<div class='step-title'>Step 3: Select the OpenAI model</div>", unsafe_allow_html=True)
+selected_model = st.selectbox(
+    "",
+    options=openai_models,
+    index=0,
+    key="selected_model"
+)
 
-# --- STEP 3: API Key ---
-st.markdown("<div class='step-title'>Step 3: Paste your OpenAI API key</div>", unsafe_allow_html=True)
+# --- STEP 4: API Key ---
+st.markdown("<div class='step-title'>Step 4: Paste your OpenAI API key</div>", unsafe_allow_html=True)
 api_token = st.text_input(
     "",
     placeholder="sk-...",
@@ -115,7 +130,7 @@ api_token = st.text_input(
     key="api_token"
 )
 
-# --- STEP 3: Run ---
+# --- STEP 5: Run ---
 st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
 col_run = st.columns([2, 1, 2])
 with col_run[1]:
@@ -137,7 +152,8 @@ if generate:
         with st.spinner("Hold on, we're generating your code..."):
             payload = {
                 "prompt": prompt,
-                "api_key": api_token
+                "api_key": api_token,
+                "model": selected_model
             }
             try:
                 if files:

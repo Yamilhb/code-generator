@@ -22,12 +22,13 @@ prompt_path = Path(__file__).resolve().parent.parent.parent.parent / 'resources/
 async def generate_code(
     prompt: str = Form(...),
     api_key: str = Form(...),
+    model: str = Form(...),
     image_file: UploadFile = File(None)
 ):
     logger.info("Function router generate_code")
 
 
-    llm = IA(api_key)
+    llm = IA(api_key,model)
     image_bytes = await image_file.read() if image_file else None
 
 
@@ -43,6 +44,11 @@ async def generate_code(
     elif result_state["process_done"] and ("request is out of context"in result_state["feedback"].lower()):
         return GenerationResponse(
             message="Warning: The request is out of context. No code has been generated. Please repeat the request.",
+            download_url="/download/project.zip"
+        )
+    elif result_state["process_done"] and ("error in llm"in result_state["feedback"].lower()):
+        return GenerationResponse(
+            message="Error in LLM! No code has been generated.",
             download_url="/download/project.zip"
         )
     elif result_state["process_done"]:
